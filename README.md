@@ -29,14 +29,15 @@ FPV sims like Liftoff, but any game works.
 git clone https://github.com/GraceHoppa/hypr-cardboard
 cd hypr-cardboard
 ./install.sh
-systemctl --user restart sunshine
+systemctl --user restart app-dev.lizardbyte.app.Sunshine
 ```
 
-It never asks for root. It does three things:
+It never asks for root. It does four things:
 
 - copies `cardboard-sbs` to `~/.local/bin`
 - copies the shader to `~/.local/share/hypr-cardboard`
 - adds a **Cardboard** app to `~/.config/sunshine/apps.json`, leaving your other apps alone
+- sets `capture = wlr` in `~/.config/sunshine/sunshine.conf`, unless you already chose a capture. Without it, Sunshine's portal capture opens a share picker and waits on it at startup
 
 Remove it with `./install.sh uninstall`.
 
@@ -99,7 +100,8 @@ install.sh            copies the two above, adds the Sunshine app
   the game and is fullscreen, then turns the shader on or off.
 - **Cursor.** The hardware cursor is drawn after the shader, so it wouldn't be
   split. While the split is on, the cursor is drawn in software and shows up in
-  both eyes.
+  both eyes. Turning the split off sets `no_hardware_cursors` to 2 (auto),
+  Hyprland's default, so a different value of yours needs `hyprctl reload`.
 - **Sunshine.** The Cardboard app is your normal desktop stream with a prep
   command: `cardboard-sbs auto` runs when the stream starts and
   `cardboard-sbs stop` runs when it ends.
