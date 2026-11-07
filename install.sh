@@ -8,6 +8,16 @@ src="$(cd "$(dirname "$0")" && pwd)"
 bin="$HOME/.local/bin"
 share="${XDG_DATA_HOME:-$HOME/.local/share}/hypr-cardboard"
 apps="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/apps.json"
+conf="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/sunshine.conf"
+unit=app-dev.lizardbyte.app.Sunshine
+
+# Sunshine's portal capture blocks its startup on a share picker. wlr asks nothing.
+# A capture the user already chose stays.
+sunshine_capture() {
+    grep -qs '^[[:space:]]*capture[[:space:]]*=' "$conf" && return 0
+    [ -z "$(tail -c1 "$conf" 2>/dev/null)" ] || echo >>"$conf"
+    echo 'capture = wlr' >>"$conf"
+}
 
 # Add or remove the Cardboard entry without touching the user's other apps.
 sunshine_app() {
@@ -19,6 +29,8 @@ with open(path) as f:
     cfg = json.load(f)
 apps = [a for a in cfg.get("apps", []) if a.get("name") != "Cardboard"]
 if action == "add":
+    # Sunshine aborts at startup on an apps.json without "env".
+    cfg.setdefault("env", {"PATH": "$(PATH):$(HOME)/.local/bin"})
     apps.insert(0, {
         "name": "Cardboard",
         "image-path": "desktop.png",
@@ -36,6 +48,7 @@ if [ "$1" = uninstall ]; then
     rm -f "$bin/cardboard-sbs"
     rm -rf "$share"
     sunshine_app remove
+    [ -f "$conf" ] && sed -i '/^capture = wlr$/d' "$conf"
     echo "Removed. Restart Sunshine to drop the Cardboard app."
     exit 0
 fi
@@ -55,7 +68,8 @@ fi
 install -Dm755 "$src/bin/cardboard-sbs" "$bin/cardboard-sbs"
 install -Dm644 "$src/share/cardboard.frag" "$share/cardboard.frag"
 sunshine_app add
+sunshine_capture
 
 echo "Installed cardboard-sbs to $bin and added the Cardboard app to $apps."
-echo "Restart Sunshine (systemctl --user restart sunshine) to see it in Moonlight."
+echo "Restart Sunshine (systemctl --user restart $unit) to see it in Moonlight."
 case ":$PATH:" in *":$bin:"*) ;; *) echo "Add $bin to your PATH to run cardboard-sbs by hand." ;; esac

@@ -24,8 +24,9 @@ print(f"{w}.0 / {h}.0")')" || return 1
 
 # A hardware cursor is drawn after the shader, so it would not be split.
 # While split, draw the cursor in software so it lands in both eyes.
+# Unsplit goes back to 2 (auto), Hyprland's default, not to false.
 set_shader() {
-    if [ -n "$1" ]; then sw=true; else sw=false; fi
+    if [ -n "$1" ]; then sw=true; else sw=2; fi
     hyprctl eval "hl.config({ decoration = { screen_shader = \"$1\" }, cursor = { no_hardware_cursors = $sw } })" >/dev/null
 }
 
@@ -54,7 +55,7 @@ def game_showing():
     return w.get("class") == os.environ["CLASS"] and w.get("fullscreen", 0) == 2
 
 def set_shader(path):
-    sw = "true" if path else "false"
+    sw = "true" if path else "2"
     subprocess.run(["hyprctl", "eval", f'hl.config({{ decoration = {{ screen_shader = "{path}" }}, cursor = {{ no_hardware_cursors = {sw} }} }})'],
                    stdout=subprocess.DEVNULL)
 
