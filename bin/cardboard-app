@@ -1,0 +1,52 @@
+#!/bin/sh
+# The Super+D entry: start Sunshine, show its web UI in a window of its own, and
+# stop Sunshine when that window closes. Sunshine runs only while the window is open.
+
+unit=app-dev.lizardbyte.app.Sunshine
+url=https://localhost:47990
+# Chromium names an --app window after its URL and profile, and ignores --class on Wayland.
+class=chrome-localhost__apps-Default
+cert="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/credentials/cacert.pem"
+profile="${XDG_DATA_HOME:-$HOME/.local/share}/hypr-cardboard/webui"
+here="$(dirname "$0")"
+
+# Already open: a second copy must not start, or its exit would stop Sunshine.
+exec 9>"${XDG_RUNTIME_DIR:-/tmp}/cardboard-app.lock"
+if ! flock -n 9; then
+    hyprctl eval "hl.dispatch(hl.dsp.focus({ window = \"class:^$class\$\" }))" >/dev/null
+    exit 0
+fi
+
+cleanup() {
+    trap - EXIT
+    "$here/cardboard-sbs" stop 2>/dev/null
+    systemctl --user stop "$unit"
+}
+trap cleanup EXIT
+trap 'exit 0' INT TERM HUP
+
+notify-send -t 15000 Cardboard 'Starting Sunshine...'
+systemctl --user start "$unit" || { notify-send -u critical Cardboard 'Sunshine did not start'; exit 1; }
+
+# The port opens after Sunshine has probed its encoders.
+tries=0
+until [ "$(curl -sk -o /dev/null -w '%{http_code}' --max-time 1 "$url/")" != 000 ]; do
+    tries=$((tries + 1))
+    if [ "$tries" -ge 60 ]; then
+        notify-send -u critical Cardboard 'Sunshine web UI did not come up'
+        exit 1
+    fi
+    sleep 1
+done
+
+# Trust exactly Sunshine's own self-signed certificate, not every bad certificate.
+pin="$(openssl x509 -in "$cert" -pubkey -noout | openssl pkey -pubin -outform der |
+    openssl dgst -sha256 -binary | base64)"
+
+# Its own profile keeps it apart from your browser, and keeps Chromium in the
+# foreground until the window closes. It only talks to localhost, so no updates or sync.
+chromium --app="$url/apps" --user-data-dir="$profile" \
+    --ignore-certificate-errors-spki-list="$pin" \
+    --no-first-run --no-default-browser-check --disable-sync \
+    --disable-background-networking --disable-component-update \
+    --disable-background-mode 9>&-

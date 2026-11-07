@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Cardboard VR
+Comment=Start Sunshine with its web UI; closing the window stops it
+Icon=dev.lizardbyte.app.Sunshine
+Exec=@BIN@/cardboard-app
+Terminal=false
+Categories=Utility;
