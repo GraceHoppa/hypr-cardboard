@@ -37,7 +37,7 @@ It never asks for root. It does four things:
 - copies `cardboard-sbs` to `~/.local/bin`
 - copies the shader to `~/.local/share/hypr-cardboard`
 - adds a **Cardboard** app to `~/.config/sunshine/apps.json`, leaving your other apps alone
-- sets `capture = wlr` in `~/.config/sunshine/sunshine.conf`, unless you already chose a capture. Without it, Sunshine's portal capture opens a share picker and waits on it at startup
+- sets `capture = kms` in `~/.config/sunshine/sunshine.conf`, unless you already chose a capture. Sunshine's portal capture opens a share picker and waits on it at startup, and `wlr` capture streams the picture without the shader, so the phone never splits
 
 Remove it with `./install.sh uninstall`.
 
