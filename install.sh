@@ -11,12 +11,13 @@ apps="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/apps.json"
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/sunshine.conf"
 unit=app-dev.lizardbyte.app.Sunshine
 
-# Sunshine's portal capture blocks its startup on a share picker. wlr asks nothing.
-# A capture the user already chose stays.
+# Sunshine's portal capture blocks its startup on a share picker, and wlr capture
+# sends the picture without the shader, so the phone never splits. kms reads the
+# final scanout. A capture the user already chose stays.
 sunshine_capture() {
     grep -qs '^[[:space:]]*capture[[:space:]]*=' "$conf" && return 0
     [ -z "$(tail -c1 "$conf" 2>/dev/null)" ] || echo >>"$conf"
-    echo 'capture = wlr' >>"$conf"
+    echo 'capture = kms' >>"$conf"
 }
 
 # Add or remove the Cardboard entry without touching the user's other apps.
@@ -48,7 +49,7 @@ if [ "$1" = uninstall ]; then
     rm -f "$bin/cardboard-sbs"
     rm -rf "$share"
     sunshine_app remove
-    [ -f "$conf" ] && sed -i '/^capture = wlr$/d' "$conf"
+    [ -f "$conf" ] && sed -i '/^capture = kms$/d' "$conf"
     echo "Removed. Restart Sunshine to drop the Cardboard app."
     exit 0
 fi
