@@ -32,10 +32,11 @@ cd hypr-cardboard
 systemctl --user restart app-dev.lizardbyte.app.Sunshine
 ```
 
-It never asks for root. It does four things:
+It never asks for root. It does these things:
 
-- copies `cardboard-sbs` to `~/.local/bin`
+- copies `cardboard-sbs` and `cardboard-app` to `~/.local/bin`
 - copies the shader to `~/.local/share/hypr-cardboard`
+- adds a **Cardboard VR** launcher entry
 - adds a **Cardboard** app to `~/.config/sunshine/apps.json`, leaving your other apps alone
 - sets `capture = kms` in `~/.config/sunshine/sunshine.conf`, unless you already chose a capture. Sunshine's portal capture opens a share picker and waits on it at startup, and `wlr` capture streams the picture without the shader, so the phone never splits
 
@@ -43,11 +44,14 @@ Remove it with `./install.sh uninstall`.
 
 ## Play
 
-1. Start the game and make it **truly fullscreen**, with the game's own
+1. Open **Cardboard VR** from your launcher. It starts Sunshine and shows its
+   web UI in a window of its own (this needs `chromium`). Sunshine runs only
+   while that window is open: close it and the stream and Sunshine both stop.
+2. Start the game and make it **truly fullscreen**, with the game's own
    fullscreen mode or Hyprland's fullscreen. Maximized doesn't count, because
    the bar would still be in the picture.
-2. In Moonlight, open the **Cardboard** app.
-3. Put the phone in the headset.
+3. In Moonlight, open the **Cardboard** app.
+4. Put the phone in the headset.
 
 The split is on only while the game is focused **and** fullscreen. Alt-tab
 away and the normal picture comes back. End the stream and everything resets.
@@ -84,8 +88,10 @@ hl.bind("SUPER + SHIFT + V", hl.dsp.exec_cmd("cardboard-sbs toggle"))
 
 ```
 bin/cardboard-sbs     turns the split on and off
+bin/cardboard-app     runs Sunshine for as long as its web UI window is open
 share/cardboard.frag  the shader that does the split
-install.sh            copies the two above, adds the Sunshine app
+share/cardboard.desktop  the launcher entry for cardboard-app
+install.sh            copies the above, adds the Sunshine app
 ```
 
 - **Shader.** Hyprland can run one fragment shader over the whole monitor

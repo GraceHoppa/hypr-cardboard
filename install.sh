@@ -10,6 +10,7 @@ share="${XDG_DATA_HOME:-$HOME/.local/share}/hypr-cardboard"
 apps="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/apps.json"
 conf="${XDG_CONFIG_HOME:-$HOME/.config}/sunshine/sunshine.conf"
 unit=app-dev.lizardbyte.app.Sunshine
+entry="${XDG_DATA_HOME:-$HOME/.local/share}/applications/cardboard.desktop"
 
 # Sunshine's portal capture blocks its startup on a share picker, and wlr capture
 # sends the picture without the shader, so the phone never splits. kms reads the
@@ -46,7 +47,7 @@ PY
 
 if [ "$1" = uninstall ]; then
     "$bin/cardboard-sbs" stop 2>/dev/null || true
-    rm -f "$bin/cardboard-sbs"
+    rm -f "$bin/cardboard-sbs" "$bin/cardboard-app" "$entry"
     rm -rf "$share"
     sunshine_app remove
     [ -f "$conf" ] && sed -i '/^capture = kms$/d' "$conf"
@@ -67,7 +68,10 @@ if [ -n "$HYPRLAND_INSTANCE_SIGNATURE" ] && ! hyprctl eval 'return 1' >/dev/null
 fi
 
 install -Dm755 "$src/bin/cardboard-sbs" "$bin/cardboard-sbs"
+install -Dm755 "$src/bin/cardboard-app" "$bin/cardboard-app"
 install -Dm644 "$src/share/cardboard.frag" "$share/cardboard.frag"
+mkdir -p "$(dirname "$entry")"
+sed "s|@BIN@|$bin|" "$src/share/cardboard.desktop" >"$entry"
 sunshine_app add
 sunshine_capture
 
